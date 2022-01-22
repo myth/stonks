@@ -1,0 +1,60 @@
+:root {
+  --padding: 0.8rem;
+  --margin: 0.8rem;
+}
+
+.text-left { text-align: left; }
+.text-green { color: green; }
+.text-red { color: red; }
+
+table {
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  width: 100%;
+}
+thead > tr {
+  margin-bottom: 5px;
+  border-bottom: 1px solid gray;
+}
+tr:nth-child(even) {
+  background-color: #111;
+}
+td, th { text-align: right; }
+tbody > tr:hover {
+  background-color: #222;
+}
+tbody {
+  font-family: 'DejaVu Sans Mono', source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+.banner-table {
+  margin: var(--margin);
+}
+.banner {
+  background-color: #111;
+  padding: var(--padding);
+  font-size: 1.2rem;
+  line-height: 1.2rem;
+  font-weight: 100;
+  text-transform: uppercase;
+}
+
+#feed,
+#forex,
+#composition,
+#status,
+#indices { width: 100%; }
+
+#panels {
+  display: flex;
+  flex-wrap: wrap;
+}
+#panels > * {
+  flex: 1 1 20%;
+  min-width: 420px;
+}
+@media screen and (max-width: 32em) {
+  #panels > * {
+    min-width: 360px;
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "positions": [
+    ["Cash [NOK]", "CASH_NOK", 1000, 1, 1000, "NOK", "CASH"],
+    ["MOWI", "MOWI_OSE", 10, 250, 2500, "NOK", "EQUITY"],
+    ["DNB Teknologi A", "DI_NOTEC_OSE", 10, 2000, 20000, "NOK", "FUND"],
+    ["Lyxor Core MSCI World", "LCUW.DE", 100, 13, 13000, "EUR", "INDEX_ETF"],
+    ["iShares Core S&P 500", "SXR8.DE", 10, 350, 35000, "EUR", "INDEX_ETF"]
+  ]
+}

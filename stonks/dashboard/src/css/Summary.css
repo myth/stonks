@@ -1,0 +1,41 @@
+.summary-plate {
+  width: 100%;
+  padding: 1rem 0;
+}
+.summary-plate-title {
+  color: #aaa;
+  text-transform: uppercase;
+  font-size: 1rem;
+  line-height: 1rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+.summary-plate-value {
+  color: whitesmoke;
+  text-align: center;
+  font-size: 2rem;
+  line-height: 2rem;
+  letter-spacing: 0.2rem;
+  font-weight: bold;
+}
+.summary-plate-value-suffix {
+  font-weight: 100;
+}
+
+@media screen and (min-width: 30em) {
+  #summary {
+    column-count: 1;
+  }
+}
+@media screen and (min-width: 48em) {
+  #summary {
+    column-count: 2;
+  }
+}
+@media screen and (min-width: 64em) {
+  #summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

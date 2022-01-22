@@ -1,0 +1,12 @@
+version: '3.6'
+
+services:
+  server:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    container_name: stonks
+    image: mythern/stonks
+    restart: unless-stopped
+    volumes:
+      - "./config.json:/app/config.json:ro"

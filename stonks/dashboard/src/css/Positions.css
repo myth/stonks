@@ -1,0 +1,15 @@
+@media screen and (max-width: 32em) {
+  .hide-extra-small {
+    display: none;
+  }
+}
+@media screen and (max-width: 48em) {
+  .hide-small {
+    display: none;
+  }
+}
+@media screen and (max-width: 64em) {
+  .hide-medium {
+    display: none;
+  }
+}
