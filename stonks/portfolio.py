@@ -257,6 +257,7 @@ class DailyCloseTask(Task):
                 if now >= target:
                     LOG.info("[%s] Persisting %s", self.name, self.close)
                     await self._db.write_close(self.close)
+                    self.stats.messages += 1
                     self.close = self.close.next()
 
                 delta = target - now

@@ -1,6 +1,7 @@
 """Yahoo Finance Collector"""
 
 from asyncio import sleep
+from datetime import datetime, timedelta
 from logging import getLogger
 
 from ..config import Asset
@@ -46,4 +47,12 @@ class YahooFinance(HTTPClientTask):
                 self.stats.errors += 1
             await sleep(1)
 
-        LOG.info("[%s] Market prices collected, sleeping for 1 minute", self.name)
+        now = datetime.now()
+        if (now.hour > 18 or now.hour < 9) and self.interval != 3600:
+            LOG.info("[%s] Switching to hourly interval, now outside market hours", self.name)
+            self.interval = 3600
+        else:
+            LOG.info("[%s] Switching to one minute interval, now approaching market hours", self.name)
+            self.interval = 60
+
+        LOG.info("[%s] Market prices collected, sleeping for %s", self.name, timedelta(seconds=self.interval))

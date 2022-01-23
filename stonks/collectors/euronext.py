@@ -1,5 +1,6 @@
 """Euronext Collectors"""
 
+from datetime import timedelta
 from logging import getLogger
 
 from .base import HTTPClientTask
@@ -33,7 +34,7 @@ class EuronextFunds(HTTPClientTask):
 
             await self.portfolio.update(updates, initial=self.initial)
 
-        LOG.info("[%s] Equity fund market values collected, sleeping for 1 hour", self.name)
+        LOG.info("[%s] Equity fund market values collected, sleeping for %s", self.name, timedelta(seconds=self.interval))
 
 
 class EuronextForex(HTTPClientTask):
@@ -60,4 +61,4 @@ class EuronextForex(HTTPClientTask):
 
             await self.portfolio.update(updates, initial=self.initial)
 
-        LOG.info("[%s] Exchange rates collected, sleeping for 5 minutes", self.name)
+        LOG.info("[%s] Exchange rates collected, sleeping for %s", self.name, timedelta(seconds=self.interval))

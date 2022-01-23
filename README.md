@@ -59,6 +59,12 @@ Add any additional entries in the config file, and then start the backend:
 python main.py -c config.json
 ```
 
+To run with a persitent history database (will write a daily close at `18:00` local time every day), use the `--db` flag:
+
+```
+python main.py -c config.json --db "history.db"
+```
+
 ## Example config file
 
 Format is `name`, `ticker`, `position`, `gav`, `cost`, `ccy`, `asset_type`
