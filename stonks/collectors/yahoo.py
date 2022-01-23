@@ -51,7 +51,7 @@ class YahooFinance(HTTPClientTask):
         if (now.hour > 18 or now.hour < 9) and self.interval != 3600:
             LOG.info("[%s] Switching to hourly interval, now outside market hours", self.name)
             self.interval = 3600
-        else:
+        elif self.interval == 3600:
             LOG.info("[%s] Switching to one minute interval, now approaching market hours", self.name)
             self.interval = 60
 
