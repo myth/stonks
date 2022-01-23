@@ -19,4 +19,4 @@ COPY --from=0 /app/build /app/stonks/dashboard/build
 
 EXPOSE 8080
 
-CMD ["python", "main.py", "-c", "/app/config.json"]
+CMD ["python", "main.py", "-c", "/app/config.json", "--db", "/app/history.db"]

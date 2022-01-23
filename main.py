@@ -8,6 +8,7 @@ from stonks.app import Stonks
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-c", "--config", help="use a JSON config file to load positions")
+    parser.add_argument("--db", help="path to SQLite databse file")
     parser.add_argument("-d", "--debug", action="store_true", help="enable debug output")
     parser.add_argument("-s", "--simulate", action="store_true", help="activate the simulation engine")
     parser.add_argument("-v", "--version", action="version", version=f"Stonks v{__version__}")

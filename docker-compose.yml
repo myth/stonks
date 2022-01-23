@@ -2,11 +2,9 @@ version: '3.6'
 
 services:
   server:
-    build:
-      dockerfile: Dockerfile
-      context: .
     container_name: stonks
-    image: mythern/stonks
+    image: ghcr.io/myth/stonks:v1.0.1
     restart: unless-stopped
     volumes:
       - "./config.json:/app/config.json:ro"
+      - "./history.db:/app/history.db"

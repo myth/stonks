@@ -16,7 +16,7 @@ from .collectors.simulator import Simulator
 from .collectors.yahoo import YahooFinance
 from .db import Database
 from .events import Event, EventType
-from .portfolio import Portfolio
+from .portfolio import DailyCloseTask, Portfolio
 
 LOG = getLogger(__name__)
 
@@ -26,13 +26,14 @@ class Stonks:
         self.num_clients = 0
         self.portfolio = Portfolio.from_config(args.config) if args.config else Portfolio([])
         self.app = web.Application()
-        self.db = Database()
+        self.db = Database(f"sqlite+aiosqlite:///{args.db}" if args.db else "sqlite+aiosqlite://")
         self.collectors = [
+            self.portfolio,
+            DailyCloseTask(self.portfolio, self.db),
             EuronextFunds(self.portfolio),
             EuronextForex(self.portfolio),
             YahooFinance(self.portfolio),
             Finansavisen(self.portfolio),
-            self.portfolio,
         ]
         self._tasks = []
 

@@ -1,14 +1,18 @@
 """Portfolio"""
 
+import asyncio
 from asyncio.tasks import sleep
 from collections import deque
+from datetime import date, datetime, time, timedelta
 from logging import getLogger
 from json import load
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
+
 
 from . import config as c
-from .events import EventEmitter, EventType
+from .db import DailyClose, Database
+from .events import EventEmitter, EventType, Event
 from .task import Task
 
 LOG = getLogger(__name__)
@@ -232,3 +236,53 @@ class Portfolio(Task):
 
     def __contains__(self, ticker: str):
         return ticker in self.positions
+
+
+class DailyCloseTask(Task):
+    def __init__(self, portfolio: "Portfolio", db: Database) -> None:
+        super().__init__(name="DailyClose")
+        self.close = None
+        self._db = db
+        self._portfolio = portfolio
+        portfolio.on(EventType.PORTFOLIO, self.handle_update)
+
+    async def run(self):
+        self.running = True
+
+        while self.running:
+            if self.close:
+                now = datetime.now()
+                target = datetime.combine(self.close.m_date, time(18))
+
+                if now >= target:
+                    LOG.info("[%s] Persisting %s", self.name, self.close)
+                    await self._db.write_close(self.close)
+                    self.close = self.close.next()
+
+                delta = target - now
+                LOG.info("[%s] Waiting %s until next daily close: %s", self.name, delta, self.close)
+                await sleep(delta.seconds)
+            else:
+                LOG.debug("[%s] No close object, waiting for portfolio update", self.name)
+                await sleep(60)
+
+    async def handle_update(self, event: Event):
+        if not self.close:
+            LOG.info("[%s] Reading previous close", self.name)
+            self.close = await self._db.get_last_close()
+
+            if not self.close:
+                LOG.info("[%s] No previous close found, creating first daily close", self.name)
+                self.close = DailyClose.create(self._portfolio.net_asset_value)
+            else:
+                self.close = self.close.next()
+                LOG.info("[%s] Prepared next daily close: %s", self.name, self.close)
+
+        LOG.debug("[%s] New NAV: %d", self.name, event.data["market_value"])
+        self.close.update(event.data["market_value"])
+
+    async def stop(self):
+        LOG.info("[%s] Stopping...", self.name)
+        self.restart = False
+        self.running = False
+        LOG.info("[%s] Stopped", self.name)
