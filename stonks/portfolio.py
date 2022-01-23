@@ -109,7 +109,7 @@ class Portfolio(Task):
     def __init__(self, positions):
         super().__init__("Portfolio")
         self.exchange_rates = ExchangeRates()
-        self.positions = {p[1]: Position(*p, self.exchange_rates) for p in positions}
+        self.positions = {p["ticker"]: Position(**p, exchange_rates=self.exchange_rates) for p in positions}
         self.indices = {}
         self.nav_history = []
         self.active_forex = {p.currency for p in self.positions.values()}
@@ -121,7 +121,7 @@ class Portfolio(Task):
         with open(config_file) as f:
             data = load(f)
             for p in data["positions"]:
-                p[-1] = c.Asset[p[-1]]
+                p["asset"] = c.Asset[p["asset"]]
             return Portfolio(data["positions"])
 
     @property

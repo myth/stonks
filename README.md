@@ -74,11 +74,42 @@ Format is `name`, `ticker`, `position`, `gav`, `cost`, `ccy`, `asset_type`
 ```
 {
   "positions": [
-    ["Cash [NOK]", "CASH_NOK", 1000, 1, 1000, "NOK", "CASH"],
-    ["MOWI", "MOWI_OSE", 10, 250, 2500, "NOK", "EQUITY"],
-    ["DNB Teknologi A", "DI_NOTEC_OSE", 10, 2000, 20000, "NOK", "FUND"],
-    ["Lyxor Core MSCI World", "LCUW.DE", 100, 13, 13000, "EUR", "INDEX_ETF"],
-    ["iShares Core S&P 500", "SXR8.DE", 10, 350, 35000, "EUR", "INDEX_ETF"]
+    {
+      "name": "Cash [NOK]",
+      "ticker": "CASH_NOK",
+      "volume": 10000,
+      "price": 1,
+      "cost": 10000,
+      "currency": "NOK",
+      "asset": "CASH"
+    },
+    {
+      "name": "MOWI",
+      "ticker": "MOWI_OSE",
+      "volume": 10,
+      "price": 200,
+      "cost": 2000,
+      "currency": "NOK",
+      "asset": "EQUITY"
+    },
+    {
+      "name": "DNB Teknologi A",
+      "ticker": "DI_NOTEC_OSE",
+      "volume": 10,
+      "price": 2700,
+      "cost": 27000,
+      "currency": "NOK",
+      "asset": "FUND"
+    },
+    {
+      "name": "Lyxor Core MSCI World",
+      "ticker": "LCUW.DE",
+      "volume": 500,
+      "price": 10,
+      "cost": 50000,
+      "currency": "EUR",
+      "asset": "INDEX_ETF"
+    }
   ]
 }
 ```
