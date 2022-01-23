@@ -42,7 +42,7 @@ class EuronextForex(HTTPClientTask):
         super().__init__(*args, name="EuronextForex", interval=300, **kwargs)
 
     async def collect(self):
-        LOG.info(f"[{self.name}] Collecting exchange rates")
+        LOG.info("[%s] Collecting exchange rates", self.name)
         url = "https://live.euronext.com/ajax/awlBlockFactory/detailedQuote"
         headers = {"User-Agent": "curl/7.68.0", "Content-Type": "application/x-www-form-urlencoded"}
 
