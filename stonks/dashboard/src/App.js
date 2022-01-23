@@ -19,7 +19,16 @@ function getWebSocketURI() {
   return `${window.location.href.startsWith("https") ? "wss" : "ws"}://${host}/ws`
 }
 
+function connectWebSocket({ onOpen, onMessage, onClose }) {
+  const ws = new WebSocket(getWebSocketURI())
+  ws.onopen = onOpen
+  ws.onmessage = onMessage
+  ws.onclose = onClose
+  return ws
+}
+
 function App() {
+  const ws = useRef()
   const summary = useRef()
   const header = useRef()
   const feed = useRef()
@@ -32,11 +41,14 @@ function App() {
   const [indexData, setIndexData] = useState({})
 
   useEffect(() => {
-    const ws = new WebSocket(getWebSocketURI())
-    ws.onopen = handleConnected
-    ws.onmessage = handleMessage
-    ws.onclose = handleDisconnected
-  }, [])
+    if (!ws.current || !ws.current.connected) {
+      ws.current = connectWebSocket({
+        onOpen: handleConnected,
+        onMessage: handleMessage,
+        onClose: handleDisconnected
+      })
+    }
+  }, [ws])
 
   function handleMessage(msg) {
     const event = JSON.parse(msg.data)
@@ -65,12 +77,27 @@ function App() {
     else status.current.setState(data)
   }
 
+  function reconnect(seconds) {
+    setTimeout(() => {
+      console.info("Reconnecting to Stonks")
+      header.current.setState({ status: "reconnecting" })
+      ws.current = connectWebSocket({
+        onOpen: handleConnected,
+        onMessage: handleMessage,
+        onClose: handleDisconnected
+      })
+    }, seconds * 1000)
+  }
+
   function handleConnected() {
-    header.current.setState({ connected: true })
+    header.current.setState({ status: "connected" })
+    console.info("Connected to Stonks")
   }
 
   function handleDisconnected() {
-    header.current.setState({ connected: false })
+    console.error("Disconnected from Stonks, reconnecting in 10 seconds")
+    header.current.setState({ status: "disconnected" })
+    reconnect(10)
   }
 
   return (
