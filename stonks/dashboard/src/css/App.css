@@ -1,6 +1,7 @@
 :root {
   --padding: 0.8rem;
   --margin: 0.8rem;
+  --banners: rgb(9, 11, 14);
 }
 
 .text-left { text-align: left; }
@@ -18,11 +19,11 @@ thead > tr {
   border-bottom: 1px solid gray;
 }
 tr:nth-child(even) {
-  background-color: #111;
+  background-color: rgb(10, 10, 10);
 }
 td, th { text-align: right; }
 tbody > tr:hover {
-  background-color: #222;
+  background-color: rgb(20, 20, 20);
 }
 tbody {
   font-family: 'DejaVu Sans Mono', source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
@@ -30,9 +31,10 @@ tbody {
 
 .banner-table {
   margin: var(--margin);
+  margin-bottom: calc(var(--margin) * 1.5);
 }
 .banner {
-  background-color: #111;
+  background-color: var(--banners);
   padding: var(--padding);
   font-size: 1.2rem;
   line-height: 1.2rem;
