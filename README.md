@@ -47,6 +47,14 @@ npm run build
 
 ## Run
 
+Rename example config file:
+
+```
+mv example-config.json config.json
+```
+
+Add any additional entries in the config file, and then start the backend:
+
 ```
 python main.py -c config.json
 ```
