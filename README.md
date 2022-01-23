@@ -67,9 +67,7 @@ python main.py -c config.json --db "history.db"
 
 ## Example config file
 
-Format is `name`, `ticker`, `position`, `gav`, `cost`, `ccy`, `asset_type`
-
-`gav` is initial cost per share in asset currency including broker fees, `cost` is initial cost in nok.
+`price` is cost per share in the asset currency including broker fees (GAV), `cost` is cost in `NOK` including broker fees and fx fee.
 
 ```
 {
