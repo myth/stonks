@@ -20,7 +20,7 @@ TASK_RESTART_MIN_WAIT_TIME: int = 10
 class Asset(Enum):
     CASH: str = "Cash"
     EQUITY: str = "Equity"
-    UNLISTED_EQUITY: str = "Unlisted Equity"
+    UNLISTED_EQUITY: str = "Equity (Unlisted)"
     FUND: str = "Mutual Fund"
     INDEX_FUND: str = "Index Fund"
     ETF: str = "ETF"

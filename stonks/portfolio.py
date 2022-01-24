@@ -248,6 +248,10 @@ class DailyCloseTask(Task):
 
     async def run(self):
         self.running = True
+        LOG.info("[%s] Reading previous close", self.name)
+        self.close = await self._db.get_last_close()
+        if self.close and self.close.m_close != date.today() + timedelta(days=1):
+            self.close = DailyClose.create(self.close.m_close)
 
         while self.running:
             if self.close:
@@ -260,6 +264,7 @@ class DailyCloseTask(Task):
                     await self._db.write_close(self.close)
                     self.stats.messages += 1
                     self.close = self.close.next()
+                    LOG.info("[%s] Prepared next daily close: %s", self.name, self.close)
 
                 LOG.info("[%s] Waiting %s until next daily close: %s", self.name, delta, self.close)
                 await sleep(delta.seconds)
@@ -268,19 +273,10 @@ class DailyCloseTask(Task):
                 await sleep(60)
 
     async def handle_update(self, event: Event):
-        if not self.close:
-            LOG.info("[%s] Reading previous close", self.name)
-            self.close = await self._db.get_last_close()
-
-            if not self.close:
-                LOG.info("[%s] No previous close found, creating first daily close", self.name)
-                self.close = DailyClose.create(self._portfolio.net_asset_value)
-            else:
-                self.close = self.close.next()
-                LOG.info("[%s] Prepared next daily close: %s", self.name, self.close)
-
-        LOG.debug("[%s] New NAV: %d", self.name, event.data["market_value"])
-        self.close.update(event.data["market_value"])
+        if self.close:
+            self.close.update(event.data["market_value"])
+        else:
+            LOG.error("[%s] No daily close object, cannot update from new NAV", self.name)
 
     async def stop(self):
         LOG.info("[%s] Stopping...", self.name)
