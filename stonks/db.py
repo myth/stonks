@@ -72,7 +72,7 @@ class Database:
 
     async def get_last_close(self) -> Optional[DailyClose]:
         async with self.engine.begin() as conn:
-            stmt = close_table.select().order_by(-close_table.c.date).limit(1)
+            stmt = sa.text("select * from close order by date desc limit 1;")
             result = await conn.execute(stmt)
             result = result.fetchone()
             if result:

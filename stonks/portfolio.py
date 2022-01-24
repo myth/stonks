@@ -250,8 +250,12 @@ class DailyCloseTask(Task):
         self.running = True
         LOG.info("[%s] Reading previous close", self.name)
         self.close = await self._db.get_last_close()
-        if self.close and self.close.m_close != date.today() + timedelta(days=1):
-            self.close = DailyClose.create(self.close.m_close)
+        if self.close:
+            LOG.info("[%s] Last close is %s", self.name, self.close)
+            if self.close.m_close != date.today() + timedelta(days=1):
+                self.close = DailyClose.create(self.close.m_close)
+        else:
+            LOG.info("[%s] Found no previous close, waiting for ")
 
         while self.running:
             if self.close:
@@ -273,10 +277,12 @@ class DailyCloseTask(Task):
                 await sleep(60)
 
     async def handle_update(self, event: Event):
+        d = event.data["market_value"]
         if self.close:
-            self.close.update(event.data["market_value"])
+            self.close.update(d)
         else:
-            LOG.error("[%s] No daily close object, cannot update from new NAV", self.name)
+            self.close = DailyClose.create(d)
+            LOG.info("[%s] Creating first close object: %s", self.name, self.close)
 
     async def stop(self):
         LOG.info("[%s] Stopping...", self.name)
