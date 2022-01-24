@@ -253,14 +253,14 @@ class DailyCloseTask(Task):
             if self.close:
                 now = datetime.now()
                 target = datetime.combine(self.close.m_date, time(18))
+                delta = target - now
 
-                if now >= target:
+                if now >= target or delta.seconds < 1:
                     LOG.info("[%s] Persisting %s", self.name, self.close)
                     await self._db.write_close(self.close)
                     self.stats.messages += 1
                     self.close = self.close.next()
 
-                delta = target - now
                 LOG.info("[%s] Waiting %s until next daily close: %s", self.name, delta, self.close)
                 await sleep(delta.seconds)
             else:
