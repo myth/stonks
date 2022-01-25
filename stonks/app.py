@@ -64,8 +64,10 @@ class Stonks:
         clients.add(ws)
 
         LOG.info("[WS] Client connected %s (connected: %d)", request.remote, len(clients))
+        daily_history = await self.db.get_closes()
         await ws.send_json(Event(EventType.PORTFOLIO, self.portfolio.json()).json())
         await ws.send_json(Event(EventType.CHART, self.portfolio.nav_history).json())
+        await ws.send_json(Event(EventType.CLOSE, [c.json() for c in daily_history]).json())
 
         async for msg in ws:
             LOG.debug("[WS] Received msg: %s", msg)

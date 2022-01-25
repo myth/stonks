@@ -10,6 +10,7 @@ class EventType(Enum):
     TICKER: str = "ticker"
     CHART: str = "chart"
     INDEX: str = "index"
+    CLOSE: str = "close"
 
 
 class Event(NamedTuple):

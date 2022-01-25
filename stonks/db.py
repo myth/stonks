@@ -2,7 +2,7 @@
 
 from datetime import date, datetime, time, timedelta
 from logging import getLogger
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
@@ -42,7 +42,13 @@ class DailyClose:
         return DailyClose(self.m_date + timedelta(days=1), self.m_close, self.m_close, self.m_close, self.m_close)
 
     def json(self) -> Dict[str, Any]:
-        return {f.replace("m_", ""): v for f, v in self.__dict__.items() if f.startswith("m_")}
+        return {
+            "date": str(self.m_date),
+            "open": self.m_open,
+            "close": self.m_close,
+            "high": self.m_high,
+            "low": self.m_low,
+        }
 
     def wait_time(self) -> timedelta:
         now = datetime.now(TZ)
@@ -91,6 +97,14 @@ class Database:
         async with self.engine.begin() as conn:
             stmt = close_table.insert().values(**close.json())
             await conn.execute(stmt)
+
+    async def get_closes(self, since: Optional[date] = None) -> List[DailyClose]:
+        async with self.engine.begin() as conn:
+            stmt = close_table.select()
+            if since:
+                stmt = stmt.where(close_table.c.date >= since)
+            result = await conn.execute(stmt)
+            return [DailyClose(*close) for close in result.fetchall()]
 
     async def stop(self):
         LOG.info("[DB] Disposing database engine")
