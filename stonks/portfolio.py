@@ -259,7 +259,7 @@ class DailyCloseTask(Task):
 
         while self.running:
             if self.close:
-                delta = self._get_wait_time()
+                delta = self.close.wait_time()
 
                 if delta.total_seconds() <= 0:
                     LOG.info("[%s] Persisting %s", self.name, self.close)
@@ -267,7 +267,7 @@ class DailyCloseTask(Task):
                     self.stats.messages += 1
                     self.close = self.close.next()
                     LOG.info("[%s] Prepared next daily close: %s", self.name, self.close)
-                    delta = self._get_wait_time()
+                    delta = self.close.wait_time()
 
                 LOG.info("[%s] Waiting %s until next daily close: %s", self.name, delta, self.close)
                 await sleep(delta.total_seconds())
@@ -288,10 +288,3 @@ class DailyCloseTask(Task):
         self.restart = False
         self.running = False
         LOG.info("[%s] Stopped", self.name)
-
-    def _get_wait_time(self) -> timedelta:
-        now = datetime.now()
-        target = datetime.combine(self.close.m_date, time(18))
-        delta = target - now
-
-        return delta

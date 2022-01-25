@@ -5,12 +5,15 @@ Stonks config options
 from enum import Enum
 from os.path import abspath, dirname, join
 from logging import INFO
+from zoneinfo import ZoneInfo
+
 
 # General
 
 LOG_LEVEL = INFO
 LOG_FORMAT = "%(asctime)s.%(msecs)03d %(levelname)s %(message)s"
 LOG_DATEFORMAT = "%Y-%m-%d %H:%M:%S"
+TZ: ZoneInfo = ZoneInfo("Europe/Oslo")
 
 # Wait at least N seconds before restarting a task
 TASK_RESTART_MIN_WAIT_TIME: int = 10
@@ -39,6 +42,8 @@ PRECISION: int = 2
 
 # Wait 250 ms between processing cycle of the portfolio ticker buffer
 PROCESSING_INTERVAL: float = 0.25
+# Hour of the day at which to close the day
+DAILY_CLOSE_HOUR: int = 18
 # Just some initial values for Forex rates
 FOREX = [
     ("SEK", "SEK", 1.0),

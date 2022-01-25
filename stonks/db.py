@@ -1,11 +1,13 @@
 """Historical database"""
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from logging import getLogger
 from typing import Any, Dict, Optional
 
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+
+from .config import DAILY_CLOSE_HOUR, TZ
 
 LOG = getLogger(__name__)
 
@@ -42,9 +44,16 @@ class DailyClose:
     def json(self) -> Dict[str, Any]:
         return {f.replace("m_", ""): v for f, v in self.__dict__.items() if f.startswith("m_")}
 
+    def wait_time(self) -> timedelta:
+        now = datetime.now(TZ)
+        target = datetime.combine(self.m_date, time(DAILY_CLOSE_HOUR), TZ)
+        delta = target - now
+
+        return delta
+
     @classmethod
     def create(cls, market_value: int) -> "DailyClose":
-        now = datetime.now()
+        now = datetime.now(TZ)
         day = now.date() if now.hour < 18 else now.date() + timedelta(days=1)
 
         return DailyClose(day, market_value, market_value, market_value, market_value)
