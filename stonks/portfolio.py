@@ -267,9 +267,10 @@ class DailyCloseTask(Task):
                     self.stats.messages += 1
                     self.close = self.close.next()
                     LOG.info("[%s] Prepared next daily close: %s", self.name, self.close)
-                else:
-                    LOG.info("[%s] Waiting %s until next daily close: %s", self.name, delta, self.close)
-                    await sleep(delta.total_seconds())
+                    delta = self._get_wait_time()
+
+                LOG.info("[%s] Waiting %s until next daily close: %s", self.name, delta, self.close)
+                await sleep(delta.total_seconds())
             else:
                 LOG.debug("[%s] No close object, waiting for portfolio update", self.name)
                 await sleep(60)
