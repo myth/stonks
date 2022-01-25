@@ -23,7 +23,6 @@ LOG = getLogger(__name__)
 
 class Stonks:
     def __init__(self, args: Namespace):
-        self.num_clients = 0
         self.portfolio = Portfolio.from_config(args.config) if args.config else Portfolio([])
         self.app = web.Application()
         self.db = Database(f"sqlite+aiosqlite:///{args.db}" if args.db else "sqlite+aiosqlite://")
@@ -61,10 +60,10 @@ class Stonks:
     async def get_ws(self, request):
         ws = web.WebSocketResponse()
         await ws.prepare(request)
-        self.app["clients"].add(ws)
-        self.num_clients += 1
+        clients = self.app["clients"]
+        clients.add(ws)
 
-        LOG.info("[WS] Client connected %s (connected: %d)", request.remote, self.num_clients)
+        LOG.info("[WS] Client connected %s (connected: %d)", request.remote, len(clients))
         await ws.send_json(Event(EventType.PORTFOLIO, self.portfolio.json()).json())
         await ws.send_json(Event(EventType.CHART, self.portfolio.nav_history).json())
 
@@ -78,10 +77,12 @@ class Stonks:
             elif msg.type == WSMsgType.ERROR:
                 LOG.error("[WS] Closed with unexpected error")
                 LOG.exception(ws.exception())
+            elif msg.type in (WSMsgType.CLOSING, WSMsgType.CLOSED):
+                await ws.close()
+                LOG.info("[WS] Closed %s", ws)
 
-        self.num_clients -= 1
-        LOG.info("[WS] Closed %s (connected: %d)", request.remote, self.num_clients)
-        self.app["clients"].remove(ws)
+        clients.remove(ws)
+        LOG.info("[WS] Closed %s (connected: %d)", request.remote, len(clients))
 
         return ws
 

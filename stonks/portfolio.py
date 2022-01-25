@@ -248,30 +248,28 @@ class DailyCloseTask(Task):
 
     async def run(self):
         self.running = True
+
         LOG.info("[%s] Reading previous close", self.name)
         self.close = await self._db.get_last_close()
+
         if self.close:
             LOG.info("[%s] Last close is %s", self.name, self.close)
             if self.close.m_close != date.today() + timedelta(days=1):
                 self.close = DailyClose.create(self.close.m_close)
-        else:
-            LOG.info("[%s] Found no previous close, waiting for ")
 
         while self.running:
             if self.close:
-                now = datetime.now()
-                target = datetime.combine(self.close.m_date, time(18))
-                delta = target - now
+                delta = self._get_wait_time()
 
-                if now >= target or delta.seconds < 1:
+                if delta.total_seconds() <= 0:
                     LOG.info("[%s] Persisting %s", self.name, self.close)
                     await self._db.write_close(self.close)
                     self.stats.messages += 1
                     self.close = self.close.next()
                     LOG.info("[%s] Prepared next daily close: %s", self.name, self.close)
-
-                LOG.info("[%s] Waiting %s until next daily close: %s", self.name, delta, self.close)
-                await sleep(delta.seconds)
+                else:
+                    LOG.info("[%s] Waiting %s until next daily close: %s", self.name, delta, self.close)
+                    await sleep(delta.total_seconds())
             else:
                 LOG.debug("[%s] No close object, waiting for portfolio update", self.name)
                 await sleep(60)
@@ -289,3 +287,10 @@ class DailyCloseTask(Task):
         self.restart = False
         self.running = False
         LOG.info("[%s] Stopped", self.name)
+
+    def _get_wait_time(self) -> timedelta:
+        now = datetime.now()
+        target = datetime.combine(self.close.m_date, time(18))
+        delta = target - now
+
+        return delta
