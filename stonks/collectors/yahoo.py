@@ -48,10 +48,11 @@ class YahooFinance(HTTPClientTask):
             await sleep(1)
 
         now = datetime.now()
-        if (now.hour > 18 or now.hour < 8) and self.interval != 3600:
-            LOG.info("[%s] Switching to hourly interval, now outside market hours", self.name)
-            self.interval = 3600
-        elif self.interval == 3600:
+        if (now.hour > 18 or now.hour < 8):
+            if self.interval != 3600:
+                LOG.info("[%s] Switching to hourly interval, now outside market hours", self.name)
+                self.interval = 3600
+        elif self.interval != 60:
             LOG.info("[%s] Switching to one minute interval, now approaching market hours", self.name)
             self.interval = 60
 
