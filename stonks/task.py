@@ -50,13 +50,13 @@ class Task(ABC, EventEmitter):
             elapsed = self._stopped - self._started
 
             if self.restart:
-                log = "[%s] Completed after %s, restarting task%s"
+                log = "[%s] Completed after %s, restarting task %s"
                 self.stats.restarts += 1
                 if elapsed < timedelta(seconds=TASK_RESTART_MIN_WAIT_TIME):
                     LOG.info(log, self.name, elapsed, f" in {TASK_RESTART_MIN_WAIT_TIME} seconds")
                     await sleep(TASK_RESTART_MIN_WAIT_TIME)
                 else:
-                    LOG.info(log, self.name, elapsed)
+                    LOG.info(log, self.name, elapsed, "")
 
             self._started = None
 
