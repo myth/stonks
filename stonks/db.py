@@ -25,6 +25,8 @@ close_table = sa.Table(
 
 class DailyClose:
     def __init__(self, m_date: date, m_open: int, m_close: int, m_high: int, m_low: int) -> None:
+        if isinstance(m_date, str):
+            m_date = datetime.strptime(m_date, "%Y-%m-%d").date()
         def vt(f, t, n):
             if not isinstance(f, t):
                 raise TypeError(f"Argument '{n}' must be type {t}, got {type(f)}")
