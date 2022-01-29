@@ -111,9 +111,6 @@ function App() {
       <div className="flex">
         <Positions positions={positions} />
       </div>
-      <div id="chart">
-        <Plot ref={plot} />
-      </div>
       <div id="panels">
         <section>
           <div className="banner">Feed</div>
@@ -146,7 +143,9 @@ function App() {
           </div>
         </section>
       </div>
-      <DailyClose ref={dailyCloses} />
+      <div id="chart">
+        <Plot ref={plot} />
+      </div>
     </main>
   )
 }
