@@ -25,6 +25,16 @@ close_table = sa.Table(
 
 class DailyClose:
     def __init__(self, m_date: date, m_open: int, m_close: int, m_high: int, m_low: int) -> None:
+        def vt(f, t, n):
+            if not isinstance(f, t):
+                raise TypeError(f"Argument '{n}' must be type {t}, got {type(f)}")
+
+        vt(m_date, date, "m_date")
+        vt(m_open, int, "m_open")
+        vt(m_close, int, "m_close")
+        vt(m_high, int, "m_high")
+        vt(m_low, int, "m_low")
+
         self.m_date = m_date
         self.m_open = m_open
         self.m_close = m_close
@@ -43,6 +53,7 @@ class DailyClose:
 
     def json(self) -> Dict[str, Any]:
         return {
+            # TODO: Remove str wrapping and use custom JSON encoder instead
             "date": str(self.m_date),
             "open": self.m_open,
             "close": self.m_close,
@@ -94,8 +105,10 @@ class Database:
                 return DailyClose(*result)
 
     async def write_close(self, close: DailyClose):
+        data = close.json()
+        data["close"] = close.m_close
         async with self.engine.begin() as conn:
-            stmt = close_table.insert().values(**close.json())
+            stmt = close_table.insert().values(**data)
             await conn.execute(stmt)
 
     async def get_closes(self, since: Optional[date] = None) -> List[DailyClose]:

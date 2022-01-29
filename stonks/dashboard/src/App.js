@@ -9,6 +9,7 @@ import Plot from './Plot'
 import Positions from './Positions'
 import { Summary } from './Summary'
 import Status from './Status'
+import DailyClose from './DailyClose'
 
 import './css/App.css'
 
@@ -34,6 +35,7 @@ function App() {
   const feed = useRef()
   const plot = useRef()
   const status = useRef()
+  const dailyCloses = useRef()
 
   const [positions, setPositions] = useState([])
   const [forexData, setForexData] = useState({})
@@ -69,6 +71,8 @@ function App() {
       plot.current.setData(data)
     } else if (event.type === "ticker") {
       feed.current.addTicker(data)
+    } else if (event.type === "close") {
+      dailyCloses.current.setCloses(data)
     } else if (event.type === "index") {
       setIndexData(data)
     }
@@ -107,6 +111,9 @@ function App() {
       <div className="flex">
         <Positions positions={positions} />
       </div>
+      <div id="chart">
+        <Plot ref={plot} />
+      </div>
       <div id="panels">
         <section>
           <div className="banner">Feed</div>
@@ -139,9 +146,7 @@ function App() {
           </div>
         </section>
       </div>
-      <div id="chart">
-        <Plot ref={plot} />
-      </div>
+      <DailyClose ref={dailyCloses} />
     </main>
   )
 }
