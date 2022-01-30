@@ -7,7 +7,7 @@ from datetime import date, datetime, time, timedelta
 from logging import getLogger
 from json import load
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 
 from . import config as c
@@ -105,16 +105,108 @@ class Position:
         }
 
 
+class Candlestick:
+    def __init__(self, nav: int):
+        target = datetime.now(c.TZ) + timedelta(hours=1)
+        self.time = datetime.combine(target.date(), time(target.hour), c.TZ)
+        self.open = nav
+        self.high = nav
+        self.low = nav
+        self.close = nav
+
+    def tick(self, nav: int):
+        self.close = nav
+        if nav > self.high:
+            self.high = nav
+        elif nav < self.low:
+            self.low = nav
+
+    def json(self):
+        return {
+            "time": int(self.time.timestamp()),
+            "open": self.open,
+            "high": self.high,
+            "low": self.low,
+            "close": self.close,
+        }
+
+    def __repr__(self):
+        return f"Candlestick<{self.time}>[open={self.open} high={self.high} low={self.low} close={self.close}]"
+
+
+class History(Task):
+    def __init__(self) -> None:
+        super().__init__("Portfolio history")
+        self.history = []
+        self.active = None
+
+    async def tick(self, nav: int):
+        if self.active:
+            self.active.tick(nav)
+        else:
+            self.active = Candlestick(nav)
+            self.history.append(self.active)
+            LOG.debug("[%s] Initialized first candlestick %s", self.name, self.active)
+
+        await self.emit(EventType.CHART_TICK, self.active.json())
+
+    def close(self):
+        if not self.active:
+            return
+
+        self.active = Candlestick(self.active.close)
+        self.history.append(self.active)
+
+        if len(self.history) > 96:
+            self.history = self.history[-96:]
+
+    async def run(self):
+        self.running = True
+
+        while self.running:
+            if self.active:
+                target = self.active.time
+            else:
+                target = datetime.now(c.TZ) + timedelta(hours=1)
+                target = datetime.combine(target.date(), time(target.hour), c.TZ)
+            wait = target - datetime.now(c.TZ)
+
+            LOG.debug("[%s] Waiting %s until next close", self.name, wait)
+            await sleep(wait.total_seconds())
+
+            self.close()
+            await self.emit(EventType.CHART, self.json())
+
+    async def stop(self):
+        LOG.info("[%s] Stopping...", self.name)
+        self.restart = False
+        self.running = False
+        LOG.info("[%s] Stopped", self.name)
+
+    def json(self):
+        return [c.json() for c in self.history]
+
+    def __len__(self) -> int:
+        return len(self.history)
+
+
 class Portfolio(Task):
     def __init__(self, positions):
         super().__init__("Portfolio")
+        self._queue = deque([])
+        self.running = False
+        self.indices = {}
+        self.history = History()
+        self.history_task = None
         self.exchange_rates = ExchangeRates()
         self.positions = {p["ticker"]: Position(**p, exchange_rates=self.exchange_rates) for p in positions}
-        self.indices = {}
-        self.nav_history = []
         self.active_forex = {p.currency for p in self.positions.values()}
-        self.running = False
-        self._queue = deque([])
+
+        async def cb(e: Event):
+            await self.emit(e.type, e.data)
+
+        self.history.on(EventType.CHART, cb)
+        self.history.on(EventType.CHART_TICK, cb)
 
     @staticmethod
     def from_config(config_file: Union[Path, str]) -> "Portfolio":
@@ -181,9 +273,8 @@ class Portfolio(Task):
 
         # Skip adding initial updates
         if emit_portfolio and not initial:
-            self.nav_history.append(self.net_asset_value)
-            self.nav_history = self.nav_history[-100:]
             await self.emit(EventType.PORTFOLIO, self.json())
+            await self.history.tick(self.net_asset_value)
             self.stats.messages += 1
 
     def json(self):
@@ -213,6 +304,7 @@ class Portfolio(Task):
 
     async def run(self):
         self.running = True
+        self.history_task = asyncio.create_task(self.history.start())
 
         while self.running:
             tickers = set()
@@ -232,6 +324,7 @@ class Portfolio(Task):
         LOG.info("[%s] Stopping...", self.name)
         self.restart = False
         self.running = False
+        await self.history.stop()
         LOG.info("[%s] Stopped", self.name)
 
     def __contains__(self, ticker: str):

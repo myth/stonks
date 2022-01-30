@@ -2,7 +2,7 @@ import Chart from "react-apexcharts"
 import React from "react"
 
 
-export default class DailyClose extends React.Component {
+export default class Candlesticks extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -11,7 +11,8 @@ export default class DailyClose extends React.Component {
           id: "chart",
           type: "candlestick",
           animations: { enabled: false },
-          background: "black"
+          background: "black",
+          toolbar: { show: false }
         },
         plotOptions: {
           candlestick: {
@@ -32,20 +33,28 @@ export default class DailyClose extends React.Component {
     }
   }
 
-  setCloses(data) {
+  updateLast(data) {
+    const items = [...this.state.series[0].data]
+    items[items.length - 1] = {
+      x: data["time"] * 1000,
+      y: [data["open"], data["high"], data["low"], data["close"]]
+    }
+    this.setState({ series: [{ name: "Hourly", data: items}]})
+  }
+
+  setData(data) {
     const items = data.map(d => {
       return {
-        x: new Date(d["date"]).getTime(),
+        x: d["time"] * 1000,
         y: [d["open"], d["high"], d["low"], d["close"]]
       }
     })
-    this.setState({ series: [{ name: "Daily", data: items}]})
+    this.setState({ series: [{ name: "Hourly", data: items}]})
   }
 
   render() {
-    const items = this.state.series.map(c => <div key={c["date"]}>{c["open"]} | {c["high"]} | {c["low"]} | {c["close"]}</div>)
     return (
-      <section id="daily-closes">
+      <section id="chart">
         <Chart options={this.state.options} series={this.state.series} type="candlestick" width="100%" height="320" />
       </section>
     )

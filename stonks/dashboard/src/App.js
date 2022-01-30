@@ -5,11 +5,10 @@ import Header from './Header'
 import Feed from './Feed'
 import Forex from './Forex'
 import Indices from './Indices'
-import Plot from './Plot'
 import Positions from './Positions'
 import { Summary } from './Summary'
 import Status from './Status'
-import DailyClose from './DailyClose'
+import Candlesticks from './Candlesticks'
 
 import './css/App.css'
 
@@ -35,7 +34,6 @@ function App() {
   const feed = useRef()
   const plot = useRef()
   const status = useRef()
-  const dailyCloses = useRef()
 
   const [positions, setPositions] = useState([])
   const [forexData, setForexData] = useState({})
@@ -66,13 +64,14 @@ function App() {
         netReturn: data.net_return,
         netReturnPercent: data.net_return_percent
       })
-      plot.current.addPoint(data.market_value)
     } else if (event.type === "chart") {
       plot.current.setData(data)
+    } else if (event.type === "chart_tick") {
+      plot.current.updateLast(data)
     } else if (event.type === "ticker") {
       feed.current.addTicker(data)
     } else if (event.type === "close") {
-      dailyCloses.current.setCloses(data)
+      // dailyCloses.current.setCloses(data)
     } else if (event.type === "index") {
       setIndexData(data)
     }
@@ -144,7 +143,7 @@ function App() {
         </section>
       </div>
       <div id="chart">
-        <Plot ref={plot} />
+        <Candlesticks ref={plot} />
       </div>
     </main>
   )

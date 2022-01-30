@@ -9,6 +9,7 @@ class EventType(Enum):
     PORTFOLIO: str = "portfolio"
     TICKER: str = "ticker"
     CHART: str = "chart"
+    CHART_TICK: str = "chart_tick"
     INDEX: str = "index"
     CLOSE: str = "close"
 
