@@ -17,6 +17,7 @@ from .collectors.yahoo import YahooFinance
 from .db import Database
 from .events import Event, EventType
 from .portfolio import DailyCloseTask, Portfolio
+from .serialize import serialize
 
 LOG = getLogger(__name__)
 
@@ -65,9 +66,9 @@ class Stonks:
 
         LOG.info("[WS] Client connected %s (connected: %d)", request.remote, len(clients))
         daily_history = await self.db.get_closes()
-        await ws.send_json(Event(EventType.PORTFOLIO, self.portfolio.json()).json())
-        await ws.send_json(Event(EventType.CHART, self.portfolio.nav_history).json())
-        await ws.send_json(Event(EventType.CLOSE, [c.json() for c in daily_history]).json())
+        await ws.send_json(Event(EventType.PORTFOLIO, self.portfolio).json(), dumps=serialize)
+        await ws.send_json(Event(EventType.CHART, self.portfolio.nav_history).json(), dumps=serialize)
+        await ws.send_json(Event(EventType.CLOSE, daily_history).json(), dumps=serialize)
 
         async for msg in ws:
             LOG.debug("[WS] Received msg: %s", msg)
@@ -90,7 +91,7 @@ class Stonks:
 
     async def broadcast(self, e: Event):
         for client in self.app["clients"]:
-            await client.send_json(e.json())
+            await client.send_json(e.json(), dumps=serialize)
 
     async def on_startup(self, app):
         await self.db.initialize()

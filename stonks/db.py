@@ -55,8 +55,7 @@ class DailyClose:
 
     def json(self) -> Dict[str, Any]:
         return {
-            # TODO: Remove str wrapping and use custom JSON encoder instead
-            "date": str(self.m_date),
+            "date": self.m_date,
             "open": self.m_open,
             "close": self.m_close,
             "high": self.m_high,
@@ -107,10 +106,8 @@ class Database:
                 return DailyClose(*result)
 
     async def write_close(self, close: DailyClose):
-        data = close.json()
-        data["close"] = close.m_close
         async with self.engine.begin() as conn:
-            stmt = close_table.insert().values(**data)
+            stmt = close_table.insert().values(**close.json())
             await conn.execute(stmt)
 
     async def get_closes(self, since: Optional[date] = None) -> List[DailyClose]:
