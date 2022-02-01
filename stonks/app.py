@@ -16,7 +16,7 @@ from .collectors.simulator import Simulator
 from .collectors.yahoo import YahooFinance
 from .db import Database
 from .events import Event, EventType
-from .portfolio import DailyCloseTask, Portfolio
+from .portfolio import Portfolio
 from .serialize import serialize
 
 LOG = getLogger(__name__)
@@ -24,12 +24,11 @@ LOG = getLogger(__name__)
 
 class Stonks:
     def __init__(self, args: Namespace):
-        self.portfolio = Portfolio.from_config(args.config) if args.config else Portfolio([])
         self.app = web.Application()
         self.db = Database(f"sqlite+aiosqlite:///{args.db}" if args.db else "sqlite+aiosqlite://")
+        self.portfolio = Portfolio.from_config(args.config, self.db) if args.config else Portfolio(self.db, [])
         self.collectors = [
             self.portfolio,
-            DailyCloseTask(self.portfolio, self.db),
             EuronextFunds(self.portfolio),
             EuronextForex(self.portfolio),
             YahooFinance(self.portfolio),
@@ -65,10 +64,8 @@ class Stonks:
         clients.add(ws)
 
         LOG.info("[WS] Client connected %s (connected: %d)", request.remote, len(clients))
-        daily_history = await self.db.get_closes()
         await ws.send_json(Event(EventType.PORTFOLIO, self.portfolio).json(), dumps=serialize)
         await ws.send_json(Event(EventType.CHART, self.portfolio.history.json()).json(), dumps=serialize)
-        await ws.send_json(Event(EventType.CLOSE, daily_history).json(), dumps=serialize)
 
         async for msg in ws:
             LOG.debug("[WS] Received msg: %s", msg)

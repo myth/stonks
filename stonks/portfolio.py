@@ -3,16 +3,15 @@
 import asyncio
 from asyncio.tasks import sleep
 from collections import deque
-from datetime import date, datetime, time, timedelta
 from logging import getLogger
 from json import load
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
-
 from . import config as c
-from .db import DailyClose, Database
+from .db import Database
 from .events import EventEmitter, EventType, Event
+from .history import History
 from .task import Task
 
 LOG = getLogger(__name__)
@@ -105,95 +104,11 @@ class Position:
         }
 
 
-class Candlestick:
-    def __init__(self, nav: int):
-        target = datetime.now(c.TZ) + timedelta(hours=1)
-        self.time = datetime.combine(target.date(), time(target.hour), c.TZ)
-        self.open = nav
-        self.high = nav
-        self.low = nav
-        self.close = nav
-
-    def tick(self, nav: int):
-        self.close = nav
-        if nav > self.high:
-            self.high = nav
-        elif nav < self.low:
-            self.low = nav
-
-    def json(self):
-        return {
-            "time": int(self.time.timestamp()),
-            "open": self.open,
-            "high": self.high,
-            "low": self.low,
-            "close": self.close,
-        }
-
-    def __repr__(self):
-        return f"Candlestick<{self.time}>[open={self.open} high={self.high} low={self.low} close={self.close}]"
-
-
-class History(Task):
-    def __init__(self) -> None:
-        super().__init__("Portfolio history")
-        self.history = []
-        self.active = None
-
-    async def tick(self, nav: int):
-        if self.active:
-            self.active.tick(nav)
-        else:
-            self.active = Candlestick(nav)
-            self.history.append(self.active)
-            LOG.debug("[%s] Initialized first candlestick %s", self.name, self.active)
-
-        await self.emit(EventType.CHART_TICK, self.active.json())
-
-    def close(self):
-        if not self.active:
-            return
-
-        self.active = Candlestick(self.active.close)
-        self.history.append(self.active)
-
-        if len(self.history) > 96:
-            self.history = self.history[-96:]
-
-    async def run(self):
-        self.running = True
-
-        while self.running:
-            if self.active:
-                target = self.active.time
-            else:
-                target = datetime.now(c.TZ) + timedelta(hours=1)
-                target = datetime.combine(target.date(), time(target.hour), c.TZ)
-            wait = target - datetime.now(c.TZ)
-
-            LOG.debug("[%s] Waiting %s until next close", self.name, wait)
-            await sleep(wait.total_seconds())
-
-            self.close()
-            await self.emit(EventType.CHART, self.json())
-
-    async def stop(self):
-        LOG.info("[%s] Stopping...", self.name)
-        self.restart = False
-        self.running = False
-        LOG.info("[%s] Stopped", self.name)
-
-    def json(self):
-        return [c.json() for c in self.history]
-
-    def __len__(self) -> int:
-        return len(self.history)
-
-
 class Portfolio(Task):
-    def __init__(self, positions):
+    def __init__(self, db: Database, positions):
         super().__init__("Portfolio")
         self._queue = deque([])
+        self.db = db
         self.running = False
         self.indices = {}
         self.history = History()
@@ -209,12 +124,12 @@ class Portfolio(Task):
         self.history.on(EventType.CHART_TICK, cb)
 
     @staticmethod
-    def from_config(config_file: Union[Path, str]) -> "Portfolio":
+    def from_config(config_file: Union[Path, str], db: Database) -> "Portfolio":
         with open(config_file) as f:
             data = load(f)
             for p in data["positions"]:
                 p["asset"] = c.Asset[p["asset"]]
-            return Portfolio(data["positions"])
+            return Portfolio(db, data["positions"])
 
     @property
     def cost(self):
@@ -277,6 +192,9 @@ class Portfolio(Task):
             await self.history.tick(self.net_asset_value)
             self.stats.messages += 1
 
+    async def handle_close(self, e: Event):
+        await self.db.write_candlestick(e.data)
+
     def json(self):
         current = self.net_asset_value
         positions = [p.json() for p in self.positions.values()]
@@ -304,6 +222,7 @@ class Portfolio(Task):
 
     async def run(self):
         self.running = True
+        self.history.set_history(await self.db.get_history())
         self.history_task = asyncio.create_task(self.history.start())
 
         while self.running:
@@ -329,55 +248,3 @@ class Portfolio(Task):
 
     def __contains__(self, ticker: str):
         return ticker in self.positions
-
-
-class DailyCloseTask(Task):
-    def __init__(self, portfolio: "Portfolio", db: Database) -> None:
-        super().__init__(name="DailyClose")
-        self.close = None
-        self._db = db
-        self._portfolio = portfolio
-        portfolio.on(EventType.PORTFOLIO, self.handle_update)
-
-    async def run(self):
-        self.running = True
-
-        LOG.info("[%s] Reading previous close", self.name)
-        self.close = await self._db.get_last_close()
-
-        if self.close:
-            LOG.info("[%s] Last close is %s", self.name, self.close)
-            if self.close.m_close != date.today() + timedelta(days=1):
-                self.close = DailyClose.create(self.close.m_close)
-
-        while self.running:
-            if self.close:
-                delta = self.close.wait_time()
-
-                if delta.total_seconds() <= 0:
-                    LOG.info("[%s] Persisting %s", self.name, self.close)
-                    await self._db.write_close(self.close)
-                    self.stats.messages += 1
-                    self.close = self.close.next()
-                    LOG.info("[%s] Prepared next daily close: %s", self.name, self.close)
-                    delta = self.close.wait_time()
-
-                LOG.info("[%s] Waiting %s until next daily close: %s", self.name, delta, self.close)
-                await sleep(delta.total_seconds())
-            else:
-                LOG.debug("[%s] No close object, waiting for portfolio update", self.name)
-                await sleep(60)
-
-    async def handle_update(self, event: Event):
-        d = event.data["market_value"]
-        if self.close:
-            self.close.update(d)
-        else:
-            self.close = DailyClose.create(d)
-            LOG.info("[%s] Creating first close object: %s", self.name, self.close)
-
-    async def stop(self):
-        LOG.info("[%s] Stopping...", self.name)
-        self.restart = False
-        self.running = False
-        LOG.info("[%s] Stopped", self.name)

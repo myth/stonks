@@ -4,14 +4,14 @@ from datetime import date, datetime
 from functools import partial
 from json import JSONEncoder, dumps
 
-from .db import DailyClose
 from .events import Event, EventType
+from .history import CandleStick
 from .portfolio import Portfolio
 
 
 class StonksEncoder(JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, (DailyClose, Event, Portfolio)):
+        if isinstance(obj, (CandleStick, Event, Portfolio)):
             return obj.json()
         elif isinstance(obj, EventType):
             return obj.value

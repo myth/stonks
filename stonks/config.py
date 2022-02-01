@@ -42,8 +42,8 @@ PRECISION: int = 2
 
 # Wait 250 ms between processing cycle of the portfolio ticker buffer
 PROCESSING_INTERVAL: float = 0.25
-# Hour of the day at which to close the day
-DAILY_CLOSE_HOUR: int = 18
+# How many hours of history
+HISTORY_BUFFER: int = 96
 # Just some initial values for Forex rates
 FOREX = [
     ("SEK", "SEK", 1.0),
