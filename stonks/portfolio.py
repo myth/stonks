@@ -117,11 +117,12 @@ class Portfolio(Task):
         self.positions = {p["ticker"]: Position(**p, exchange_rates=self.exchange_rates) for p in positions}
         self.active_forex = {p.currency for p in self.positions.values()}
 
-        async def cb(e: Event):
+        async def re_emit(e: Event):
             await self.emit(e.type, e.data)
 
-        self.history.on(EventType.CHART, cb)
-        self.history.on(EventType.CHART_TICK, cb)
+        self.history.on(EventType.CHART, re_emit)
+        self.history.on(EventType.CHART_TICK, re_emit)
+        self.history.on(EventType.CLOSE, self.handle_close)
 
     @staticmethod
     def from_config(config_file: Union[Path, str], db: Database) -> "Portfolio":
