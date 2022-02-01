@@ -22,7 +22,7 @@ export default class Candlesticks extends React.Component {
             }
           }
         },
-        grid: { show: false },
+        grid: { show: false, padding: { left: 0, right: 0 } },
         xaxis: { axisTicks: { show: false }, axisBorder: { show: false }, type: "datetime" },
         yaxis: { axisTicks: { show: false }, labels: { show: false }, axisBorder: { show: false }, },
         // stroke: { curve: "straight", width: 3 },
