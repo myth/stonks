@@ -45,7 +45,7 @@ class Database:
         async with self.engine.begin() as conn:
             stmt = history_table.select().order_by(-history_table.c.time).limit(count)
             result = await conn.execute(stmt)
-            return [CandleStick.create_from_db(*c) for c in result.fetchall()]
+            return sorted([CandleStick.create_from_db(*c) for c in result.fetchall()], key=lambda c: c.time)
 
     async def stop(self):
         LOG.info("[DB] Disposing database engine")

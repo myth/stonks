@@ -106,7 +106,7 @@ class History(Task):
                 target = datetime.combine(target.date(), time(target.hour), c.TZ)
             wait = target - datetime.now(c.TZ)
 
-            LOG.debug("[%s] Waiting %s until next close", self.name, wait)
+            LOG.info("[%s] Waiting %s until next close", self.name, wait)
             await sleep(wait.total_seconds())
 
             self.close()
