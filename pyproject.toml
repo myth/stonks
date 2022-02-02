@@ -3,7 +3,7 @@ line-length = 120
 
 [tool.poetry]
 name = "stonks"
-version = "1.2.2"
+version = "1.2.3"
 description = ""
 authors = ["Aleksander S <myth@overflow.no>"]
 license = "MIT"
