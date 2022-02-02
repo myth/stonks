@@ -3,6 +3,9 @@ import React from 'react'
 
 import './css/Summary.css'
 
+// Updated for 2022
+const TAX = 0.352
+
 function SummaryPlate(props) {
   let val = <span>{ props.colorize ? colorize(props.value) : props.value }</span>
 
@@ -23,7 +26,7 @@ class Summary extends React.Component {
   }
 
   render() {
-    const netReturnAfterTax = Math.round(this.state.netReturn - this.state.netReturn * 0.3168)
+    const netReturnAfterTax = Math.round(this.state.netReturn - this.state.netReturn * TAX)
 
     return (
       <div id="summary">
