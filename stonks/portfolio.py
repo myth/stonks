@@ -194,7 +194,12 @@ class Portfolio(Task):
             self.stats.messages += 1
 
     async def handle_close(self, e: Event):
-        await self.db.write_candlestick(e.data)
+        try:
+            await self.db.write_candlestick(e.data)
+        except Exception as e:
+            LOG.error("[%s] Error handling write candlestick close: %s", self, e)
+            LOG.exception(e)
+            self.stats.errors += 1
 
     def json(self):
         current = self.net_asset_value

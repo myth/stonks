@@ -88,7 +88,10 @@ class Stonks:
 
     async def broadcast(self, e: Event):
         for client in self.app["clients"]:
-            await client.send_json(e.json(), dumps=serialize)
+            try:
+                await client.send_json(e.json(), dumps=serialize)
+            except Exception as e:
+                LOG.error("[WS] Failed to broadcast to client: %s", e)
 
     async def on_startup(self, app):
         await self.db.initialize()
