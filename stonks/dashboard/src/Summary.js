@@ -28,9 +28,9 @@ class Summary extends React.Component {
     return (
       <div id="summary">
         <SummaryPlate title="Market Value" value={this.state.marketValue} suffix="NOK"/>
-        <SummaryPlate title="Net Change" value={this.state.netReturnPercent} suffix="%" colorize />
-        <SummaryPlate title="Net Return" value={this.state.netReturn} suffix="NOK" colorize />
-        <SummaryPlate title="Net Return After Tax" value={netReturnAfterTax} suffix="NOK" colorize />
+        <SummaryPlate title="Net Return" value={this.state.netReturnPercent} suffix="%" colorize />
+        <SummaryPlate title="Unrealized" value={this.state.netReturn} suffix="NOK" colorize />
+        <SummaryPlate title="Unrealized After Tax" value={netReturnAfterTax} suffix="NOK" colorize />
       </div>
     )
   }
