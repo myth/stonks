@@ -95,6 +95,8 @@ class History(Task):
         if len(self.history) > c.HISTORY_BUFFER:
             self.history = self.history[-c.HISTORY_BUFFER:]
 
+        await self.emit(EventType.CHART, self.json())
+
     async def run(self):
         self.running = True
 
@@ -108,9 +110,7 @@ class History(Task):
 
             LOG.info("[%s] Waiting %s until next close", self.name, wait)
             await sleep(wait.total_seconds())
-
-            self.close()
-            await self.emit(EventType.CHART, self.json())
+            await self.close()
 
     async def stop(self):
         LOG.info("[%s] Stopping...", self.name)
