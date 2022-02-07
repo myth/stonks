@@ -61,3 +61,7 @@ tbody {
     min-width: 360px;
   }
 }
+#chart {
+  padding-left: var(--padding);
+  padding-right: var(--padding);
+}

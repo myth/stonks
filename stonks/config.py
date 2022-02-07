@@ -2,6 +2,7 @@
 Stonks config options
 """
 
+from dateutil.relativedelta import relativedelta
 from enum import Enum
 from os.path import abspath, dirname, join
 from logging import INFO
@@ -41,15 +42,17 @@ PRECISION: int = 2
 # Portfolio
 
 # Wait 250 ms between processing cycle of the portfolio ticker buffer
-PROCESSING_INTERVAL: float = 0.25
-# How many hours of history
-HISTORY_BUFFER: int = 96
 # Just some initial values for Forex rates
 FOREX = [
     ("SEK", "SEK", 1.0),
     ("EUR", "EUR", 10.0),
     ("USD", "USD", 8.5),
 ]
+PROCESSING_INTERVAL: float = 0.25
+# How many hours of history
+HISTORY_BUFFER: int = 96
+# DB persist interval
+CLOSE_INTERVAL = relativedelta(hours=1, minute=0, second=0, microsecond=0)
 
 # Testing
 

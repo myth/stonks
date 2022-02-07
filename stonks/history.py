@@ -1,13 +1,20 @@
 from asyncio import sleep
 from datetime import datetime, time, timedelta
 from logging import getLogger
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from . import config as c
 from .events import EventType
 from .task import Task
 
 LOG = getLogger(__name__)
+
+
+def get_next_close(d: Optional[datetime] = None):
+    if not d:
+        d = datetime.now(c.TZ)
+
+    return d + c.CLOSE_INTERVAL
 
 
 class CandleStick:
@@ -36,8 +43,7 @@ class CandleStick:
             self.low = nav
 
     def next(self) -> "CandleStick":
-        t = self.time + timedelta(hours=1)
-        return CandleStick(t, self.close, self.close, self.close, self.close)
+        return CandleStick(get_next_close(self.time), self.close, self.close, self.close, self.close)
 
     def json(self) -> Dict[str, Any]:
         return {
@@ -50,9 +56,7 @@ class CandleStick:
 
     @classmethod
     def create(cls, nav: int):
-        target = datetime.now(c.TZ) + timedelta(hours=1)
-        t = datetime.combine(target.date(), time(target.hour), c.TZ)
-        return cls(t, nav, nav, nav, nav)
+        return cls(get_next_close(), nav, nav, nav, nav)
 
     @classmethod
     def create_from_db(cls, _time: int, *args):
@@ -73,6 +77,8 @@ class History(Task):
         if self.history:
             self.active = CandleStick.create(self.history[-1].close)
             LOG.info("[%s] Initialized active candlestick from history %s", self.name, self.active)
+        else:
+            LOG.debug("[%s] No candlestick initialized, empty history", self.name)
 
     async def tick(self, nav: int):
         if self.active:
@@ -86,6 +92,7 @@ class History(Task):
 
     async def close(self):
         if not self.active:
+            LOG.debug("[%s] No active candlestick, close has no effect", self.name)
             return
 
         await self.emit(EventType.CLOSE, self.active)
@@ -104,8 +111,7 @@ class History(Task):
             if self.active:
                 target = self.active.time
             else:
-                target = datetime.now(c.TZ) + timedelta(hours=1)
-                target = datetime.combine(target.date(), time(target.hour), c.TZ)
+                target = get_next_close()
             wait = target - datetime.now(c.TZ)
 
             LOG.info("[%s] Waiting %s until next close", self.name, wait)

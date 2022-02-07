@@ -25,11 +25,10 @@ export default class Candlesticks extends React.Component {
         grid: { show: false, padding: { left: 0, right: 0 } },
         xaxis: { axisTicks: { show: false }, axisBorder: { show: false }, type: "datetime" },
         yaxis: { axisTicks: { show: false }, labels: { show: false }, axisBorder: { show: false }, },
-        // stroke: { curve: "straight", width: 3 },
         theme: { mode: "dark" },
         // colors: ["#7e9724"]
       },
-      series: [{ name: "Daily", data: [] }]
+      series: [{ name: "Hourly", data: [] }]
     }
   }
 
@@ -54,9 +53,7 @@ export default class Candlesticks extends React.Component {
 
   render() {
     return (
-      <section id="chart">
-        <Chart options={this.state.options} series={this.state.series} type="candlestick" width="100%" height="320" />
-      </section>
+      <Chart options={this.state.options} series={this.state.series} type="candlestick" width="100%" height="320" />
     )
   }
 }
