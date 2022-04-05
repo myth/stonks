@@ -10,8 +10,9 @@ from aiohttp import WSMsgType, web
 
 from . import __version__
 from . import config as c
-from .collectors.euronext import EuronextForex, EuronextFunds
+from .collectors.euronext import EuronextForex
 from .collectors.finansavisen import Finansavisen
+from .collectors.nordnet import NordNetFunds
 from .collectors.simulator import Simulator
 from .collectors.yahoo import YahooFinance
 from .db import Database
@@ -29,7 +30,7 @@ class Stonks:
         self.portfolio = Portfolio.from_config(args.config, self.db) if args.config else Portfolio(self.db, [])
         self.collectors = [
             self.portfolio,
-            EuronextFunds(self.portfolio),
+            NordNetFunds(self.portfolio),
             EuronextForex(self.portfolio),
             YahooFinance(self.portfolio),
             Finansavisen(self.portfolio),

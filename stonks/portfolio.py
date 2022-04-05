@@ -65,6 +65,7 @@ class Position:
         currency: str,
         asset: c.Asset,
         exchange_rates: ExchangeRates,
+        collector: str = "default",
     ):
         self.name = name
         self.ticker = ticker
@@ -74,6 +75,7 @@ class Position:
         self.currency = currency
         self.asset = asset
         self.exchange_rates = exchange_rates
+        self.collector = collector
 
     @property
     def market_value(self):

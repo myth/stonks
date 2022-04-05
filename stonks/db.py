@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from .config import HISTORY_BUFFER
 from .history import CandleStick
-from stonks import history
 
 LOG = getLogger(__name__)
 
