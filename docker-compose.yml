@@ -3,7 +3,7 @@ version: '3.6'
 services:
   server:
     container_name: stonks
-    image: ghcr.io/myth/stonks:v1.0.1
+    image: ghcr.io/myth/stonks:v1.2.6
     restart: unless-stopped
     volumes:
       - "./config.json:/app/config.json:ro"
