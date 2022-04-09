@@ -17,9 +17,9 @@ history_table = sa.Table(
     metadata,
     sa.Column("time", sa.Integer, primary_key=True),
     sa.Column("open", sa.Integer, nullable=False),
-    sa.Column("close", sa.Integer, nullable=False),
     sa.Column("high", sa.Integer, nullable=False),
     sa.Column("low", sa.Integer, nullable=False),
+    sa.Column("close", sa.Integer, nullable=False),
 )
 
 
